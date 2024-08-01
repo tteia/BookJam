@@ -1,8 +1,10 @@
 package com.hackathon.bookjam.common.auth;
 
+import com.hackathon.bookjam.login.MemberInfoDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +26,9 @@ import java.util.List;
 @Slf4j
 @Component
 public class JwtAuthFilter extends GenericFilter {
+    @Value("${jwt.secretKey}")
+    private String secretKey;
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String bearerToken = ((HttpServletRequest) request).getHeader("Authorization");
@@ -33,12 +38,12 @@ public class JwtAuthFilter extends GenericFilter {
                     throw new AuthenticationServiceException("Bearer 형식이 아닙니다.");
                 }
                 String token = bearerToken.substring(7);
-                Claims claims = Jwts.parser().setSigningKey("abc").parseClaimsJws(token).getBody();
-
+                Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
                 List<GrantedAuthority> authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority("ROLE_"+claims.get("role")));
-                UserDetails userDetails = new User(claims.getSubject(), "", authorities);
-                Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+//                UserDetails userDetails = new User(claims.getSubject(), "", authorities);
+                MemberInfoDetails memberInfoDetails = new MemberInfoDetails(claims.getSubject(), "", authorities);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(memberInfoDetails, "", memberInfoDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
             filterChain.doFilter(request, response);
@@ -48,7 +53,7 @@ public class JwtAuthFilter extends GenericFilter {
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
             httpServletResponse.setContentType("application/json");
-            httpServletResponse.getWriter().write("token-error");
+//            httpServletResponse.getWriter().write("token-error");
         }
 
 

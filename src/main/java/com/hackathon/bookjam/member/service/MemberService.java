@@ -1,14 +1,18 @@
 package com.hackathon.bookjam.member.service;
 
+import com.hackathon.bookjam.login.MemberInfoDetails;
 import com.hackathon.bookjam.member.domain.Member;
+import com.hackathon.bookjam.member.dto.MemberInfoRsDto;
 import com.hackathon.bookjam.member.dto.MemberLoginDto;
 import com.hackathon.bookjam.member.dto.MemberSaveRqDto;
 import com.hackathon.bookjam.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class MemberService {
@@ -41,5 +45,10 @@ public class MemberService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         return member;
+    }
+
+    public MemberInfoRsDto mypage(MemberInfoDetails memberInfoDetails) {
+        Member member = memberRepository.findByEmail(memberInfoDetails.getUsername()).orElseThrow(()->new EntityNotFoundException("회원을 찾을 수 없습니다."));
+        return member.fromEntity();
     }
 }

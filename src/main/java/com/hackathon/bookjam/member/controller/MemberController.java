@@ -1,7 +1,9 @@
 package com.hackathon.bookjam.member.controller;
 
 import com.hackathon.bookjam.common.auth.JwtTokenProvider;
+import com.hackathon.bookjam.login.MemberInfoDetails;
 import com.hackathon.bookjam.member.domain.Member;
+import com.hackathon.bookjam.member.dto.MemberInfoRsDto;
 import com.hackathon.bookjam.member.dto.MemberLoginDto;
 import com.hackathon.bookjam.member.dto.MemberSaveRqDto;
 import com.hackathon.bookjam.member.service.MemberService;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -53,6 +56,13 @@ public class MemberController {
         loginInfo.put("token", jwtToken);
         loginInfo.put("refreshToken", refreshToken);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "Success", loginInfo);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/mypage")
+    public ResponseEntity<?> myPage(@AuthenticationPrincipal MemberInfoDetails memberInfoDetails){
+        MemberInfoRsDto infoDto = memberService.mypage(memberInfoDetails);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK,"Success", infoDto);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 

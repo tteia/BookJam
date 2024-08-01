@@ -1,6 +1,7 @@
 package com.hackathon.bookjam.member.domain;
 
 import com.hackathon.bookjam.common.domain.Address;
+import com.hackathon.bookjam.member.dto.MemberInfoRsDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,4 +33,11 @@ public class Member {
     @ColumnDefault("'USER'")
     private Role role;
 
+    public MemberInfoRsDto fromEntity() {
+        return MemberInfoRsDto.builder()
+                .name(this.name)
+                .nickname(this.nickname)
+                .address(this.address)
+                .build();
+    }
 }
