@@ -1,21 +1,36 @@
 package com.hackathon.bookjam.common.configs;
 
+
+import com.hackathon.bookjam.common.auth.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableGlobalMethodSecurity(prePostEnabled = true) //pre : 사전검증 , post : 사후 검
+public class SecurityConfig {
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
+        return httpSecurity
                 .csrf().disable()
+                .cors().and() // CORS 활성화
+                .httpBasic().disable()
                 .authorizeRequests()
-                .antMatchers("/member/register").permitAll() // 회원가입 엔드포인트를 허용
-                .anyRequest().authenticated(); // 그 외의 모든 요청은 인증 필요
+                .antMatchers("/member/register", "/member/login")
+                .permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }

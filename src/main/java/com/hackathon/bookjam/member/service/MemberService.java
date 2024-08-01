@@ -1,11 +1,14 @@
 package com.hackathon.bookjam.member.service;
 
 import com.hackathon.bookjam.member.domain.Member;
+import com.hackathon.bookjam.member.dto.MemberLoginDto;
 import com.hackathon.bookjam.member.dto.MemberSaveRqDto;
 import com.hackathon.bookjam.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class MemberService {
@@ -30,5 +33,13 @@ public class MemberService {
         }
         Member member = saveDto.toEntity(passwordEncoder.encode(saveDto.getPassword()));
         return memberRepository.save(member);
+    }
+
+    public Member login(MemberLoginDto loginDto) {
+        Member member = memberRepository.findByEmail(loginDto.getEmail()).orElseThrow(()->new EntityNotFoundException("존재하지 않는 이메일입니다."));
+        if(!passwordEncoder.matches(loginDto.getPassword(), member.getPassword())){
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        return member;
     }
 }
