@@ -8,6 +8,7 @@ import com.hackathon.bookjam.member.dto.MemberLoginDto;
 import com.hackathon.bookjam.member.dto.MemberSaveRqDto;
 import com.hackathon.bookjam.member.service.MemberService;
 import com.hackathon.bookjam.common.dto.CommonResDto;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,28 +24,21 @@ import java.util.concurrent.TimeUnit;
 
 @RequestMapping("/member")
 @RestController
+@RequiredArgsConstructor
 public class MemberController {
     private static final Logger log = LoggerFactory.getLogger(MemberController.class);
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, Object> redisTemplate;
 
-
-    @Autowired
-    public MemberController(MemberService memberService, JwtTokenProvider jwtTokenProvider, RedisTemplate<String, Object> redisTemplate) {
-        this.memberService = memberService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.redisTemplate = redisTemplate;
-    }
-
     @PostMapping("/register")
     public ResponseEntity<?> memberRegister(@RequestBody MemberSaveRqDto saveDto){
         memberService.memberRegister(saveDto);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "SUCCESS", saveDto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "회원가입 완료!", saveDto);
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody MemberLoginDto loginDto){
         Member member = memberService.login(loginDto);
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole().toString());
@@ -55,14 +49,14 @@ public class MemberController {
         loginInfo.put("id", member.getId());
         loginInfo.put("token", jwtToken);
         loginInfo.put("refreshToken", refreshToken);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "Success", loginInfo);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "로그인 완료!", loginInfo);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
     @GetMapping("/mypage")
     public ResponseEntity<?> myPage(@AuthenticationPrincipal MemberInfoDetails memberInfoDetails){
         MemberInfoRsDto infoDto = memberService.mypage(memberInfoDetails);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK,"Success", infoDto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK,"내 정보 조회 완료 !", infoDto);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
